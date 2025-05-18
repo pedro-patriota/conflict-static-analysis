@@ -135,8 +135,7 @@ public class Main {
         String prevContent;
         try {
             prevContent = new String(Files.readAllBytes(Paths.get(outJSON)));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             prevContent = "[\n";
             System.out.println("Error getting the previous content of the JSON file " + e.getMessage());
         }
@@ -249,10 +248,16 @@ public class Main {
                 runReachabilityAnalysis(classpath);
                 break;
             case "overriding-interprocedural":
-                runOverrideAssignmentAnalysis(classpath, true);
+                runOverrideAssignmentAnalysis(classpath, true, true);
                 break;
             case "overriding-intraprocedural":
-                runOverrideAssignmentAnalysis(classpath, false);
+                runOverrideAssignmentAnalysis(classpath, false, true);
+                break;
+            case "ioa-without-pa":
+                runOverrideAssignmentAnalysis(classpath, true, false);
+                break;
+            case "oa-without-pa":
+                runOverrideAssignmentAnalysis(classpath, false, false);
                 break;
             case "dfp-intra":
                 runDFPAnalysis(classpath, false);
@@ -346,18 +351,17 @@ public class Main {
         }
     }
 
-    private void runOverrideAssignmentAnalysis(String classpath, Boolean interprocedural) {
+    private void runOverrideAssignmentAnalysis(String classpath, Boolean interprocedural, Boolean pointerAnalysis) {
         int depthLimit = Integer.parseInt(cmd.getOptionValue("depthLimit", "5"));
-        boolean oaPointerAnalysis = Boolean.parseBoolean(cmd.getOptionValue("oaPointerAnalysis", "true"));
         List<String> entrypoints = convertStringEntrypointsToList(cmd.getOptionValue("entrypoints"));
 
         stopwatch = Stopwatch.createStarted();
 
-        OverrideAssignment overrideAssignment = oaPointerAnalysis
+        OverrideAssignment overrideAssignment = pointerAnalysis
                 ? new OverrideAssignmentWithPointerAnalysis(definition, depthLimit, interprocedural, entrypoints)
                 : new OverrideAssignmentWithoutPointerAnalysis(definition, depthLimit, interprocedural, entrypoints);
 
-        SootWrapper.configureSootOptionsToRunInterproceduralOverrideAssignmentAnalysis(classpath);
+        SootWrapper.configureSootOptionsToRunInterproceduralOverrideAssignmentAnalysis(classpath, pointerAnalysis);
 
         overrideAssignment.configureEntryPoints();
 
@@ -551,7 +555,7 @@ public class Main {
         boolean depthMethodsVisited = Boolean.parseBoolean(cmd.getOptionValue("printDepthSVFA", "false"));
 
         analysis.execute(false);
-        System.out.println("Depth limit: "+analysis.getDepthLimit());
+        System.out.println("Depth limit: " + analysis.getDepthLimit());
         conflicts.addAll(analysis.getConfluentConflicts(false)
                 .stream()
                 .map(p -> formatConflict(p.toString()))
@@ -561,9 +565,9 @@ public class Main {
                 .map(ConfluenceConflict::toJSON)
                 .collect(Collectors.toList()));
 
-        System.out.println("CONFLICTS: "+conflicts.toString());
-        saveVisitedMethods("Confluence "+type_analysis, (analysis.getVisitedMethods()+","+analysis.getGraphSize()));
-        saveConflictsLog("Confluence "+type_analysis, analysis.reportConflictsConfluence().toString().replace("\n", ""));
+        System.out.println("CONFLICTS: " + conflicts.toString());
+        saveVisitedMethods("Confluence " + type_analysis, (analysis.getVisitedMethods() + "," + analysis.getGraphSize()));
+        saveConflictsLog("Confluence " + type_analysis, analysis.reportConflictsConfluence().toString().replace("\n", ""));
     }
 
     private void loadDefinition(String filePath) throws Exception {

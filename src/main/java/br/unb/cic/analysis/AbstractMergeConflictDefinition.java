@@ -346,6 +346,7 @@ public abstract class AbstractMergeConflictDefinition {
 
     /**
      * Auxiliary method to extract the SootClass from a method signature.
+     *
      * @param fullMethodSignature the full method signature
      * @return the SootClass extracted from the method signature
      */
@@ -362,6 +363,7 @@ public abstract class AbstractMergeConflictDefinition {
 
     /**
      * Auxiliary method to extract the method name from a method signature.
+     *
      * @param fullMethodSignature the full method signature
      * @return the method name extracted from the method signature
      */
@@ -381,7 +383,7 @@ public abstract class AbstractMergeConflictDefinition {
     /**
      * Adds methods to the entry points set based on the provided method names and SootClass.
      *
-     * @param entryPoints a set to which the methods will be added
+     * @param entryPoints      a set to which the methods will be added
      * @param methodSignatures a list of method names to be added as entry points
      */
     private void addMethodsToEntryPoints(Set<SootMethod> entryPoints, List<String> methodSignatures) throws NoSuchMethodException {
